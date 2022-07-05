@@ -1,5 +1,6 @@
 #!/bin/bash
 ###OS Rocky linux 8.6 node-master
+### sed -i -e 's/\r$//' install_master_kubeadm.sh
 ########### master CPU 2 RAM 2
 
 cat /etc/hosts << EOF
@@ -88,19 +89,15 @@ systemctl start kubelet.service
 systemctl status kubelet
 
 
-###
-kubeadm init
-# kubeadm init --apiserver-advertise-address=192.168.88.137 --pod-network-cidr=10.10.0.0/16 
-# kubeadm init --config kubeadm-config.yaml
-kubectl get nodes
-
-
-
 ###########Setup networking with Calico
 kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
 kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 
 ###
-# kubeadm init
+kubeadm init
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl get nodes
 # kubeadm init --apiserver-advertise-address=192.168.88.137 --pod-network-cidr=10.10.0.0/16 
 # kubeadm init --config kubeadm-config.yaml
