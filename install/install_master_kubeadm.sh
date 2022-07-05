@@ -3,6 +3,9 @@
 ### sed -i -e 's/\r$//' install_master_kubeadm.sh
 ########### master CPU 2 RAM 2
 
+yum install -y nano mc git curl vim iproute-tc
+dnf install -y conntrack-tools libnetfilter_cthelper libnetfilter_cttimeout
+
 cat /etc/hosts << EOF
 192.168.88.137 node1
 192.168.88.138 node2
@@ -89,15 +92,18 @@ systemctl start kubelet.service
 systemctl status kubelet
 
 
-###########Setup networking with Calico
-kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
 
 ###
 kubeadm init
 mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
-kubectl get nodes
+
 # kubeadm init --apiserver-advertise-address=192.168.88.137 --pod-network-cidr=10.10.0.0/16 
 # kubeadm init --config kubeadm-config.yaml
+
+###########Setup networking with Calico
+kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+kubectl get nodes
