@@ -6,10 +6,11 @@
 yum install -y nano mc git curl vim iproute-tc
 dnf install -y conntrack-tools libnetfilter_cthelper libnetfilter_cttimeout
 
-cat /etc/hosts << EOF
-192.168.88.137 node1
-192.168.88.138 node2
-192.168.88.139 node3
+cat >> /etc/hosts << EOF
+192.168.10.169 node1.k8s.local
+192.168.10.169 node1
+192.168.10.146 node2.k8s.local
+192.168.10.146 node2
 EOF
 
 ##########Disable SELinux###############
@@ -45,7 +46,7 @@ modprobe overlay
 modprobe br_netfilter
 
 # sysctl params required by setup, params persist across reboots
-cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+cat << EOF | tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward                 = 1
