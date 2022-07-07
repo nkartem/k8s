@@ -1,0 +1,26 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata : 
+  name : my-phpmyadmin-replicas
+  labels:
+    webapp : phpmyadmin
+    db : mariadb
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: database-web-app
+  template:
+    metadata:
+      labels:
+        app: database-web-app
+    spec:
+      containers:
+      - name: phpmyadmin-web-app
+        image: phpmyadmin:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
