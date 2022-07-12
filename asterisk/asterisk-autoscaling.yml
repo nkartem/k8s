@@ -1,0 +1,57 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata : 
+  name : asterisk-deploy
+  labels:
+    webapp : Asterisk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asterisk
+  template:
+    metadata:
+      labels:
+        app: asterisk
+    spec:
+      containers:
+      - name: asterisk
+        image: nkartem/asterisk:latest
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        ports:
+          - containerPort: 5060
+          - containerPort: 5022
+          - containerPort: "10000-20000"
+        volumeMounts:
+        - mountPath: /etc/asterisk
+          name: name-local-volume
+      volumes:
+      - name: name-local-volume
+        hostPath:
+          # directory location on host
+          path: /opt/localhost-etc/asterisk
+          # this field is optional
+          type: Directory
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: asterisk-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: asterisk-deploy
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
