@@ -1,0 +1,82 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata : 
+  name : mariadb
+  labels:
+    db : mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-mariadb
+  template:
+    metadata:
+      labels:
+        app: db-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.7.4
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: "112233445566"
+        - name: MARIADB_DATABASE # This variable allows you to specify the name of a database to be created on image startup.
+          value: IntDB
+        - name: MARIADB_USER
+          value: user
+        - name: MARIADB_PASSWORD
+          value: userpassword        
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: name-local-volume1
+        - mountPath: /run/mysqld
+          name: name-local-volume2
+
+      - name : container-phpmyadmin
+        image: phpmyadmin:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: PMA_ARBITRARY
+          value: "1" # when set to 1 connection to the arbitrary server will be allowed
+        - name: PMA_HOST
+          value: '127.0.0.1'
+        - name: PMA_PORT
+          value: "3306"
+        - name: MARIADB_ROOT_PASSWORD
+          value: secret
+
+      volumes:
+      - name: name-local-volume1
+        hostPath:
+          # directory location on host
+          path: /opt/podman/mariadb
+          # this field is optional
+          type: Directory
+      - name: name-local-volume2
+        hostPath:
+          # directory location on host
+          path: /opt/podman/mariadb
+          # this field is optional
+          type: Directory    
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-name-mariadb-autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mariadb
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50 # max 1000 . 1000 = 1 core 
