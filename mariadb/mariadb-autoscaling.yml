@@ -1,7 +1,7 @@
 apiVersion : apps/v1
 kind : Deployment
 metadata : 
-  name : mariadb-deployment
+  name : mariadb
   labels:
     db : mariadb
 spec:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mariadb
-        image: mariadb:latest
+        image: mariadb:10.7.4
         env:
         - name: MARIADB_ROOT_PASSWORD
           value: secret
