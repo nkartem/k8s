@@ -15,6 +15,8 @@ cat >> /etc/hosts << EOF
 192.168.10.88 node3
 192.168.10.81 node0.k8s.local
 192.168.10.81 node0
+192.168.10.77 lb.k8s.local
+192.168.10.77 lb
 EOF
 
 ##########Disable SELinux###############
