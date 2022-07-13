@@ -11,6 +11,10 @@ cat >> /etc/hosts << EOF
 192.168.10.169 node1
 192.168.10.146 node2.k8s.local
 192.168.10.146 node2
+192.168.10.88 node3.k8s.local
+192.168.10.88 node3
+192.168.10.81 node0.k8s.local
+192.168.10.81 node0
 EOF
 
 ##########Disable SELinux###############
@@ -95,16 +99,6 @@ systemctl status kubelet
 
 
 
-###
-# kubeadm init
-# mkdir -p $HOME/.kube
-# cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-# chown $(id -u):$(id -g) $HOME/.kube/config
-
-# kubeadm init --apiserver-advertise-address=192.168.88.137 --pod-network-cidr=10.10.0.0/16 
-# kubeadm init --config kubeadm-config.yaml
-
 ###########Setup networking with Calico
 kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
 kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-# kubectl get nodes
