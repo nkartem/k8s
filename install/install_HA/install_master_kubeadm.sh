@@ -16,8 +16,8 @@ cat >> /etc/hosts << EOF
 192.168.10.88 node3
 192.168.10.81 node0.k8s.local
 192.168.10.81 node0
-192.168.10.77 lb.k8s.local
-192.168.10.77 lb
+192.168.10.167 lb.k8s.local
+192.168.10.167 lb
 EOF
 
 ##########Disable SELinux###############
@@ -79,21 +79,24 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-dnf install yum-plugin-versionlock -y
+dnf install -y kubelet=1.24.2 kubeadm=1.24.2 kubectl=1.24.2 --disableexcludes=kubernetes
+dnf install -y yum-plugin-versionlock 
 dnf versionlock kubelet kubeadm kubectl
+systemctl daemon-reload
 systemctl enable --now kubelet
 ######## Enable and start kubelet
-systemctl enable kubelet.service
-systemctl start kubelet.service
+#systemctl enable kubelet.service
+#systemctl start kubelet.service
 systemctl status kubelet
 
 
 
 
 ###
-###IP 192.168.10.77 load_balanser lb.k8s.local
-kubeadm init --control-plane-endpoint="192.168.10.77:6443" --upload-certs --apiserver-advertise-address=192.168.10.169 --pod-network-cidr=10.10.0.0/16
+###IP 192.168.10.167 load_balanser lb.k8s.local
+kubeadm init --control-plane-endpoint="192.168.10.167:6443" --upload-certs --apiserver-advertise-address=192.168.10.169 --pod-network-cidr=10.10.0.0/16
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
 
 
 ###########Setup networking with Calico
@@ -106,7 +109,7 @@ kubectl get nodes
 ############For HA cluster################
 
 ### Enter comand on master2 (192.168.10.146) and master3 (192.168.10.88) 
-# kubeadm join 192.168.10.169:6443 --token 6ka5kq.po2vm9pb5109720f \
+# kubeadm join 192.168.10.167:6443 --token 6ka5kq.po2vm9pb5109720f \
 #         --discovery-token-ca-cert-hash sha256:b443e8f93930770745f41cd2c5e6b9d3b0d5c350496658cc6fca2d43f913d44e \
 #         --control-plane --certificate-key 48790cd2222b5b10e410fd672c5212c0098bac0d6903b47623dc1eda6a882c5b \
 #         --apiserver-advertise-address=192.168.10.146
