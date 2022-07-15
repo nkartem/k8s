@@ -15,6 +15,8 @@ cat >> /etc/hosts << EOF
 192.168.10.88 node3
 192.168.10.81 node0.k8s.local
 192.168.10.81 node0
+192.168.10.167 lb.k8s.local
+192.168.10.167 lb
 EOF
 
 ##########Disable SELinux###############
@@ -64,17 +66,6 @@ systemctl restart containerd
 systemctl stop firewalld
 systemctl disable firewalld
 
-
-# firewall-cmd --permanent --add-port=6443/tcp
-# firewall-cmd --permanent --add-port=2379-2380/tcp
-# firewall-cmd --permanent --add-port=10250/tcp
-# firewall-cmd --permanent --add-port=10251/tcp
-# firewall-cmd --permanent --add-port=10252/tcp
-# firewall-cmd --reload
-# modprobe br_netfilter
-# sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
-# sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
-
 ####Install kubelet, Kubeadm and kubectl
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -88,12 +79,13 @@ exclude=kubelet kubeadm kubectl
 EOF
 
 dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-dnf install yum-plugin-versionlock -y
+dnf install -y yum-plugin-versionlock 
 dnf versionlock kubelet kubeadm kubectl
+systemctl daemon-reload
 systemctl enable --now kubelet
 ######## Enable and start kubelet
-systemctl enable kubelet.service
-systemctl start kubelet.service
+#systemctl enable kubelet.service
+#systemctl start kubelet.service
 systemctl status kubelet
 
 
