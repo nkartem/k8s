@@ -87,7 +87,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+dnf install -y kubelet=1.24.2 kubeadm=1.24.2 kubectl=1.24.2 --disableexcludes=kubernetes
 dnf install yum-plugin-versionlock -y
 dnf versionlock kubelet kubeadm kubectl
 systemctl enable --now kubelet
