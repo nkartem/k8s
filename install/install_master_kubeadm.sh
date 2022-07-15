@@ -15,8 +15,8 @@ cat >> /etc/hosts << EOF
 192.168.10.88 node3
 192.168.10.81 node0.k8s.local
 192.168.10.81 node0
-192.168.10.77 lb.k8s.local
-192.168.10.77 lb
+192.168.10.167 lb.k8s.local
+192.168.10.167 lb
 EOF
 
 ##########Disable SELinux###############
@@ -89,7 +89,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+dnf install -y kubelet=1.24.2 kubeadm=1.24.2 kubectl=1.24.2 --disableexcludes=kubernetes
 dnf install yum-plugin-versionlock -y
 dnf versionlock kubelet kubeadm kubectl
 systemctl enable --now kubelet
