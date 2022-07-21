@@ -3,7 +3,7 @@ kind : Deployment
 metadata : 
   name : asterisk-deploy
   labels:
-    webapp : Asterisk
+    app : asterisk-app
 spec:
   replicas: 1
   selector:
@@ -16,15 +16,28 @@ spec:
     spec:
       containers:
       - name: asterisk
-        image: nkartem/asterisk:latest
+        image: nkartem/asterisk
         # resources:
         #   limits:
         #     memory: "128Mi"
         #     cpu: "500m"
+        command: ["/bin/bash", "-c", "systemctl start asterisk"]
         ports:
-          - containerPort: 5060
-          - containerPort: 5022
-          - containerPort: "10000-20000"
+        - name:  sip
+          containerPort:  5060
+          protocol: UDP
+        - name:  ssh
+          containerPort:  5022
+          protocol: TCP
+        - name:  sip-10000
+          containerPort: 10000
+          protocol: UDP
+        - name:  sip-10001
+          containerPort: 10001
+          protocol: UDP
+        # - name:  sip-connect
+        #   containerPort: '10000-20000'
+        #   protocol: UDP
         volumeMounts:
         - mountPath: /etc/asterisk
           name: name-local-volume
@@ -32,7 +45,7 @@ spec:
       - name: name-local-volume
         hostPath:
           # directory location on host
-          path: /opt/localhost-etc/asterisk
+          path: /opt/podman/asterisk
           # this field is optional
           type: Directory
 
@@ -55,3 +68,31 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  service-asterisk
+spec:
+  selector:
+    app:  asterisk # Selecting PODS with those Labels
+  type:  NodePort # LoadBalancer | ClusterIP | NodePort
+  ports:
+  - name:  name-sip-port
+    port:  5060        # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip  # Port on POD
+  - name:  name-ssh-port
+    port:  5022        # Port on Load Balancer
+    targetPort:  ssh  # Port on POD
+  - name:  name-10000
+    port:  10000 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10000  # Port on POD
+  - name:  name-10001
+    port:  10001 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10001  # Port on POD
+  # - name:  name-sip-connect-10000
+  #   port:  10000-20000 # Port on Load Balancer
+  #   targetPort:  sip-connect-10000  # Port on POD
