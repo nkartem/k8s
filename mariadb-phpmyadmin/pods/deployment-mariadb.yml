@@ -1,0 +1,49 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata : 
+  name : deploy-mariadb
+  labels:
+    db : label-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-mariadb
+  template:
+    metadata:
+      labels:
+        app: db-mariadb # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.7.4
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: "112233445566"
+        - name: MARIADB_DATABASE # This variable allows you to specify the name of a database to be created on image startup.
+          value: IntDB
+        - name: MARIADB_USER
+          value: user
+        - name: MARIADB_PASSWORD
+          value: userpassword        
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: name-local-volume1
+        - mountPath: /run/mysqld
+          name: name-local-volume2
+
+      volumes:
+      - name: name-local-volume1
+        hostPath:
+          # directory location on host
+          path: /opt/podman/mariadb
+          # this field is optional
+          type: Directory
+      - name: name-local-volume2
+        hostPath:
+          # directory location on host
+          path: /opt/podman/mariadb
+          # this field is optional
+          type: Directory    
