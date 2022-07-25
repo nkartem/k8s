@@ -15,6 +15,10 @@ cat >> /etc/hosts << EOF
 192.168.10.88 node3
 192.168.10.81 node0.k8s.local
 192.168.10.81 node0
+192.168.10.155 node4.k8s.local
+192.168.10.155 node4
+192.168.10.89 node5.k8s.local
+192.168.10.89 node5
 192.168.10.167 lb.k8s.local
 192.168.10.167 lb
 EOF
