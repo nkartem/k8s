@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name:  service-name-db
+spec:
+  selector:
+    app:  db-mariadb # Selecting PODS with those Labels
+  type:  NodePort # LoadBalancer | ClusterIP | NodePort
+  ports:
+  - name:  name-of-the-port
+    port:  80        # Port on Load Balancer
+    targetPort:  80  # Port on POD
