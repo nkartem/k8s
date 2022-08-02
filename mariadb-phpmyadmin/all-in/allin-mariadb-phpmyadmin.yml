@@ -52,13 +52,13 @@ spec:
       - name: name-local-volume1
         hostPath:
           # directory location on host
-          path: /opt/podman/mariadb
+          path: /opt1/podman/mariadb
           # this field is optional
           type: Directory
       - name: name-local-volume2
         hostPath:
           # directory location on host
-          path: /opt/podman/mariadb
+          path: /opt1/podman/mariadb
           # this field is optional
           type: Directory    
 ---
@@ -71,8 +71,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: mariadb
-  minReplicas: 2
-  maxReplicas: 3
+  minReplicas: 1
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
