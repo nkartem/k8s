@@ -35,6 +35,19 @@ spec:
         - name:  sip-10001
           containerPort: 10001
           protocol: UDP
+        - name:  sip-10002
+          containerPort: 10002
+          protocol: UDP
+        - name:  sip-10003
+          containerPort: 10003
+          protocol: UDP
+        - name:  sip-10004
+          containerPort: 10004
+          protocol: UDP
+        - name:  sip-10005
+          containerPort: 10005
+          protocol: UDP
+
         # - name:  sip-connect
         #   containerPort: '10000-20000'
         #   protocol: UDP
@@ -60,7 +73,7 @@ spec:
     kind: Deployment
     name: asterisk-deploy
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 10
   metrics:
   - type: Resource
     resource:
@@ -93,6 +106,22 @@ spec:
     port:  10001 # Port on Load Balancer
     protocol: UDP
     targetPort:  sip-10001  # Port on POD
+  - name:  name-10002
+    port:  10002 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10002  # Port on POD
+  - name:  name-10003
+    port:  10003 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10003  # Port on POD
+  - name:  name-10004
+    port:  10004 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10004  # Port on POD
+  - name:  name-10005
+    port:  10001 # Port on Load Balancer
+    protocol: UDP
+    targetPort:  sip-10005  # Port on POD
   # - name:  name-sip-connect-10000
   #   port:  10000-20000 # Port on Load Balancer
   #   targetPort:  sip-connect-10000  # Port on POD
