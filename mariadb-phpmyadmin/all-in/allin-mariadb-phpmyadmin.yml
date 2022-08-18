@@ -5,7 +5,7 @@ metadata :
   labels:
     db : label-deploy
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: db-mariadb
@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
       - name: mariadb
-        image: mariadb:10.7.4
+#        image: nkartem/mariadb:10.8.3
+        image: mariadb:latest
+#        command: ["s3fs k8slocalk8s /opt -o passwd_file=${HOME}/.passwd-s3fs"] # connect S3 backet AWS
+#        command: ["mariadbd"]
         env:
         - name: MARIADB_ROOT_PASSWORD
           value: "112233445566"
@@ -30,9 +33,14 @@ spec:
         - containerPort: 3306
         volumeMounts:
         - mountPath: /var/lib/mysql
-          name: name-local-volume1
+          name: nfs-pvc-test
         - mountPath: /run/mysqld
-          name: name-local-volume2
+          name: nfs-pvc-test
+        # - mountPath: /var/lib/mysql
+        #   name: name-local-volume1
+        # - mountPath: /run/mysqld
+        #   name: name-local-volume2
+
 
       - name : container-phpmyadmin
         image: phpmyadmin:latest
@@ -49,18 +57,27 @@ spec:
           value: secret
 
       volumes:
-      - name: name-local-volume1
-        hostPath:
-          # directory location on host
-          path: /opt1/podman/mariadb
-          # this field is optional
-          type: Directory
-      - name: name-local-volume2
-        hostPath:
-          # directory location on host
-          path: /opt1/podman/mariadb
-          # this field is optional
-          type: Directory    
+      - name:  nfs-pvc-test
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+      # - name: name-local-volume1
+      #   hostPath:
+      #     # directory location on host
+      #     path: /mnt/opt/podman/mariadb
+      #     # this field is optional
+      #     type: Directory
+      # - name: name-local-volume2
+      #   hostPath:
+      #     # directory location on host
+      #     path: /mnt/opt/podman/mariadb
+      #     # this field is optional
+      #     type: Directory
+      # # - name: name-local-volume3
+      # #   hostPath:
+      # #     # directory location on host
+      # #     path: /opt/.passwd-s3fs
+      # # #     # # this field is optional
+      # # #     # type: Directory   
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -79,7 +96,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50 # max 1000 . 1000 = 1 core 
+        averageUtilization: 50 # max 1000 . 1000 == 1 core 
 ---
 apiVersion: v1
 kind: Service
@@ -93,3 +110,53 @@ spec:
   - name:  name-of-the-port
     port:  80        # Port on Load Balancer
     targetPort:  80  # Port on POD
+---
+# For this config you need install NFS server
+# https://www.linuxtechi.com/setup-nfs-server-on-centos-8-rhel-8/
+# PV
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv1-nfs
+  namespace: test-nfs
+spec:
+  capacity:
+    storage: 5Gi
+  # volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: nfs
+  # mountOptions:
+  #   - hard
+  #   - nfsvers=4.1
+  nfs:
+    path: /mnt/nfs_shares/k8s
+    server: 192.168.1.100 # IP NFS server
+---
+# For this config you need install NFS server
+# https://www.linuxtechi.com/setup-nfs-server-on-centos-8-rhel-8/
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+#  namespace: test-nfs
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+  volumeName: pv1-nfs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3-config
+data:
+  S3_REGION: ""
+  S3_BUCKET: ""
+  AWS_KEY: ""
+  AWS_SECRET_KEY: ""
