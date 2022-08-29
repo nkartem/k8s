@@ -15,7 +15,7 @@ spec:
         app: db-mariadb # Service will look for those PODS Labels!!!
     spec:
       containers:
-      - name: mariadb
+      - name: mariadb # 10.8.3   10.7.5
 #        image: nkartem/mariadb:10.8.3
         image: mariadb:latest
 #        command: ["s3fs k8slocalk8s /opt -o passwd_file=${HOME}/.passwd-s3fs"] # connect S3 backet AWS
@@ -118,7 +118,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: pv1-nfs
-  namespace: test-nfs
+#  namespace: test-nfs
 spec:
   capacity:
     storage: 5Gi
