@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+      app:  nginx # Selecting PODS with those Labels
+  type:  NodePort # LoadBalancer | ClusterIP | NodePort
+  ports:
+    - protocol: TCP
+      port: 8888      # Port on Load Balancer
+      targetPort: 80  # Port on POD
