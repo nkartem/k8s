@@ -1,0 +1,19 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: scale-to-zero
+  namespace: testing
+spec:
+  cooldownPeriod: 300
+  maxReplicaCount: 10
+  minReplicaCount: 1
+  pollingInterval: 30
+  scaleTargetRef:
+    name: nginx-deployment-testing
+  triggers:
+  - type: cron
+    metadata:
+      timezone: Asia/Jerusalem
+      start: 19 * * * *
+      end: 25 * * * *
+      desiredReplicas: "10"
