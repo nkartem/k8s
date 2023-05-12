@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: testing
+  labels:
+    monitoring: testing
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment-testing
+  namespace: testing
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+        tty: true
+        stdin: true
+        imagePullPolicy: Always
+      # - name: exporter
+      #   image: 'bitnami/nginx-exporter:latest'
+      #   command:
+      #   - /usr/bin/exporter
+      #   - '-nginx.scrape-uri'
+      #   - 'http://127.0.0.1:8080/status'
+      #   imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-nginx
+  namespace: testing
+spec:
+  selector:
+      app:  nginx # Selecting PODS with those Labels
+  type:  NodePort # LoadBalancer | ClusterIP | NodePort
+  ports:
+    - name: nginx
+      protocol: TCP
+      port: 80      # Port on Load Balancer
+      targetPort: 80  # Port on POD
+      nodePort: 30180
+    # - name: exporter
+    #   protocol: TCP
+    #   port: 9113
+    #   targetPort: 9113
+    #   nodePort: 30113
