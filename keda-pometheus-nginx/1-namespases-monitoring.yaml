@@ -5,3 +5,10 @@ metadata:
   name: prometheus
   labels:
     monitoring: prometheus
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: testing
+  labels:
+    monitoring: testing
