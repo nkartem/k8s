@@ -41,27 +41,28 @@ data:
         while True:
             process_request(random.random())
   exporter-folder.py: |
-    from prometheus_client import Counter, start_http_server
+    from prometheus_client import Gauge, start_http_server
     import os
     import time
 
-    # Create a Counter metric to track the number of files in the folder
-    file_count_metric = Counter('folder_files_total', 'Total number of files in the folder')
+    # Create a Gauge metric to track the number of files in the folder
+    file_count_metric = Gauge('folder_files_total', 'Total number of files in the folder')
 
     # Function to update the file count metric
     def update_file_count_metric():
-        folder_path = '\config'
+        folder_path = '/config'
         file_count = len(os.listdir(folder_path))
-        file_count_metric.inc(file_count)
+        file_count_metric.set(file_count)
 
     # Start the Prometheus HTTP server on the specified port
     start_http_server(8888)
-    print("http server run")
 
-    # Periodically update the file count metric
+    # Update the file count metric initially and then periodically
+    update_file_count_metric()
     while True:
+        time.sleep(60)  # Wait for 60 seconds
         update_file_count_metric()
-        time.sleep(60)  # Update the metric every 60 seconds
+
   print.py:  | 
     print("Hello World222222")
     exit()    
@@ -88,8 +89,8 @@ spec:
         image: python:latest
         #command: ["pip", "install", "prometheus_client"]
         #command: [ "python", "/config/exporter.py"]
-        command: ["/bin/sh", "-c"]
-        args: ["pip install prometheus_client && python /config/print.py && python /config/exporter-folder.py"]
+        # command: ["/bin/sh", "-c"]
+        # args: ["pip install prometheus_client && python /config/print.py && python /config/exporter-folder.py"]
         ports:
         - containerPort: 8888
           name: http
