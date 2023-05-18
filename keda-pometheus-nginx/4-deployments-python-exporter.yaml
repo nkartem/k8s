@@ -56,6 +56,7 @@ data:
 
     # Start the Prometheus HTTP server on the specified port
     start_http_server(8888)
+    print("http server run")
 
     # Update the file count metric initially and then periodically
     update_file_count_metric()
@@ -65,7 +66,12 @@ data:
 
   print.py:  | 
     print("Hello World222222")
-    exit()    
+    exit()
+  print2.py:  | 
+    print("Hello World222222")
+  print3.py:  | 
+    print("Hello World222222")
+     
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -74,6 +80,7 @@ metadata:
   namespace: exporter-python
   labels:
     app: exporter-python
+    deployment: python-deployment-exporter
 spec:
   replicas: 3
   selector:
@@ -83,14 +90,15 @@ spec:
     metadata:
       labels:
         app: exporter-python
+        deployment: python-deployment-exporter
     spec:
       containers:
       - name: python
         image: python:latest
         #command: ["pip", "install", "prometheus_client"]
         #command: [ "python", "/config/exporter.py"]
-        # command: ["/bin/sh", "-c"]
-        # args: ["pip install prometheus_client && python /config/print.py && python /config/exporter-folder.py"]
+        command: ["/bin/sh", "-c"]
+        args: ["pip install prometheus_client && python /config/print.py && python /config/exporter-folder.py"]
         ports:
         - containerPort: 8888
           name: http
@@ -120,6 +128,10 @@ spec:
               path: "exporter.py"
             - key: "print.py"
               path: "print.py"
+            - key: "print2.py"
+              path: "print2.py"
+            - key: "print3.py"
+              path: "print3.py"
 ---
 apiVersion: v1
 kind: Service
