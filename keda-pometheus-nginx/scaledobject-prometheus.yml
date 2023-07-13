@@ -26,8 +26,8 @@ spec:
     metadata:
       serverAddress: http://prometheus-server.prometheus.svc.cluster.local
       metricName: folder_files_total # DEPRECATED: This parameter is deprecated as of KEDA v2.10 and will be removed in version 2.12
-      threshold: '3.0'
-      query:  sum(folder_files_total{job="exporter-python-pod"}) > 3.0
+      threshold: '6.0'
+      query:  sum(folder_files_total{job="exporter-python-pod"}) >= 6.0
         # # Optional fields:
         # namespace: testing  # for namespaced queries, eg. Thanos
         # cortexOrgID: my-org # DEPRECATED: This parameter is deprecated as of KEDA v2.10 in favor of customHeaders and will be removed in version 2.12. Use custom headers instead to set X-Scope-OrgID header for Cortex. (see below)

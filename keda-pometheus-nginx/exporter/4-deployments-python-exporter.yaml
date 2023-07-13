@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: exporter-python
+  labels:
+    monitoring: exporter-python
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-exporter-python
+  namespace: exporter-python
+data:
+  # file-like keys
+  exporter.py: |
+    #!/usr/bin/env python
+
+    import os
+    import re
+    import platform
+    from time import sleep
+
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    from prometheus_client import start_http_server, Counter, REGISTRY
+
+    class HTTPRequestHandler(BaseHTTPRequestHandler):
+        
+        def do_GET(self):
+            if self.path == 'http://172.16.235.200/':
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes("<b> Welcome to nginx!</b>", "utf-8"))
+                request_counter.labels(status_code='200', instance=platform.node()).inc()
+            else:
+                self.send_error(404)
+                request_counter.labels(status_code='404', instance=platform.node()).inc()
+        
+                    
+    if __name__ == '__main__':
+                
+        start_http_server(9000)
+        request_counter = Counter('http_requests', 'HTTP request', ["status_code", "instance"])
+
+        webServer = HTTPServer(("localhost", 8080), HTTPRequestHandler).serve_forever()
+        print("Server started")
+  exporter2.py: | 
+    from prometheus_client import start_http_server, Summary
+    import random
+    import time
+
+    # Create a metric to track time spent and requests made.
+    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
+
+    # Decorate function with metric.
+    @REQUEST_TIME.time()
+    def process_request(t):
+        """A dummy function that takes some time."""
+        time.sleep(t)
+
+    if __name__ == '__main__':
+        # Start up the server to expose the metrics.
+        start_http_server(8888)
+        # Generate some requests.
+        while True:
+            process_request(random.random())
+  print.py:  | 
+    print("Hello World222222")
+    exit()    
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-deployment-exporter
+  namespace: exporter-python
+  labels:
+    app: exporter-python
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exporter-python
+  template:
+    metadata:
+      labels:
+        app: exporter-python
+    spec:
+      containers:
+      - name: python
+        image: python:latest
+        #command: ["pip", "install", "prometheus_client"]
+        #command: [ "python", "/config/exporter.py"]
+        command: ["/bin/sh", "-c"]
+        args: ["pip install prometheus_client && python /config/print.py && python /config/exporter2.py"]
+        ports:
+        - containerPort: 8888
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+        tty: true
+        stdin: true
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: cm-exporter-python
+            # An array of keys from the ConfigMap to create as files
+            items:
+            - key: "exporter.py"
+              path: "exporter.py"
+            - key: "config.ini"
+              path: "config.ini"
+            - key: "print.py"
+              path: "print.py"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-python
+  namespace: exporter-python
+spec:
+  selector:
+      app:  python # Selecting PODS with those Labels
+  type:  NodePort # LoadBalancer | ClusterIP | NodePort
+  ports:
+    - name: python
+      protocol: TCP
+      port: 8888      # Port on Load Balancer
+      targetPort: 8888  # Port on POD
+      nodePort: 30190
