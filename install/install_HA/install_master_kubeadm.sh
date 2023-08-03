@@ -7,17 +7,15 @@ yum install -y nano mc git curl vim iproute-tc
 dnf install -y conntrack-tools libnetfilter_cthelper libnetfilter_cttimeout
 
 cat >> /etc/hosts << EOF
-
-192.168.10.169 node1.k8s.local
-192.168.10.169 node1
-192.168.10.146 node2.k8s.local
-192.168.10.146 node2
-192.168.10.88 node3.k8s.local
-192.168.10.88 node3
-192.168.10.81 node0.k8s.local
-192.168.10.81 node0
-192.168.10.167 lb.k8s.local
-192.168.10.167 lb
+192.168.10.115 k8s-master1
+192.168.10.184 k8s-master2
+192.168.10.127 k8s-master3
+192.168.10.110 k8s-worker1
+192.168.10.154 k8s-worker2
+192.168.10.129 k8s-worker3
+192.168.10.83 k8s-nfs
+192.168.10.100 lb.k8s.local
+192.168.10.100 lb
 EOF
 
 ##########Disable SELinux###############
@@ -67,6 +65,16 @@ systemctl restart containerd
 systemctl stop firewalld
 systemctl disable firewalld
 
+# firewall-cmd --permanent --add-port=6443/tcp
+# firewall-cmd --permanent --add-port=2379-2380/tcp
+# firewall-cmd --permanent --add-port=10250/tcp
+# firewall-cmd --permanent --add-port=10251/tcp
+# firewall-cmd --permanent --add-port=10252/tcp
+# firewall-cmd --reload
+# modprobe br_netfilter
+# sh -c "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
+# sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
+
 ####Install kubelet, Kubeadm and kubectl
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -79,7 +87,8 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet=1.24.2 kubeadm=1.24.2 kubectl=1.24.2 --disableexcludes=kubernetes
+#dnf install -y kubelet=1.26.3 kubeadm=1.26.3 kubectl=1.26.3 --disableexcludes=kubernetes
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 dnf install -y yum-plugin-versionlock 
 dnf versionlock kubelet kubeadm kubectl
 systemctl daemon-reload
@@ -88,31 +97,35 @@ systemctl enable --now kubelet
 #systemctl enable kubelet.service
 #systemctl start kubelet.service
 systemctl status kubelet
-
+systemctl restart kubelet
 
 
 
 ###
-###IP 192.168.10.167 load_balanser lb.k8s.local
-kubeadm init --control-plane-endpoint="192.168.10.167:6443" --upload-certs --apiserver-advertise-address=192.168.10.169 --pod-network-cidr=10.10.0.0/16
+###IP 192.168.10.100 load_balanser lb.k8s.local
+# kubeadm init --control-plane-endpoint="192.168.10.100:6443" --upload-certs --apiserver-advertise-address=192.168.10.184 --pod-network-cidr=10.10.0.0/16
+sudo kubeadm init --control-plane-endpoint "192.168.10.100:6443" --upload-certs
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 
 ###########Setup networking with Calico
-kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+# kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
+# kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml -O
+kubectl apply -f calico.yaml
 kubectl get nodes
 
 
 
 ############For HA cluster################
 
-### Enter comand on master2 (192.168.10.146) and master3 (192.168.10.88) 
-# kubeadm join 192.168.10.167:6443 --token 6ka5kq.po2vm9pb5109720f \
+### Enter comand from master2 (192.168.10.184) to master1 (192.168.10.115) and master3 (192.168.10.127) 
+# kubeadm join 192.168.10.100:6443 --token 6ka5kq.po2vm9pb5109720f \
 #         --discovery-token-ca-cert-hash sha256:b443e8f93930770745f41cd2c5e6b9d3b0d5c350496658cc6fca2d43f913d44e \
 #         --control-plane --certificate-key 48790cd2222b5b10e410fd672c5212c0098bac0d6903b47623dc1eda6a882c5b \
-#         --apiserver-advertise-address=192.168.10.146
+
+
 ###copy config file to master2 and master3 from master1
 # mkdir .kube
 # scp root@192.168.10.169:/etc/kubernetes/admin.conf ~/.kube/config

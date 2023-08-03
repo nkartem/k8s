@@ -14,16 +14,15 @@ sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 cat >> /etc/hosts << EOF
-192.168.10.169 node1.k8s.local
-192.168.10.169 node1
-192.168.10.146 node2.k8s.local
-192.168.10.146 node2
-192.168.10.88 node3.k8s.local
-192.168.10.88 node3
-192.168.10.81 node0.k8s.local
-192.168.10.81 node0
-192.168.10.167 lb.k8s.local
-192.168.10.167 lb
+192.168.10.115 k8s-master1
+192.168.10.184 k8s-master2
+192.168.10.127 k8s-master3
+192.168.10.110 k8s-worker1
+192.168.10.154 k8s-worker2
+192.168.10.129 k8s-worker3
+192.168.10.83 k8s-nfs
+192.168.10.100 lb.k8s.local
+192.168.10.100 lb
 EOF
 
 
@@ -36,8 +35,8 @@ errorExit() {
 }
 
 curl --silent --max-time 2 --insecure https://localhost:6443/ -o /dev/null || errorExit "Error GET https://localhost:6443/"
-if ip addr | grep -q 192.168.10.167; then
-  curl --silent --max-time 2 --insecure https://192.168.10.167:6443/ -o /dev/null || errorExit "Error GET https://192.168.10.167:6443/"
+if ip addr | grep -q 192.168.10.100; then
+  curl --silent --max-time 2 --insecure https://192.168.10.100:6443/ -o /dev/null || errorExit "Error GET https://192.168.10.100:6443/"
 fi
 EOF
 
@@ -65,7 +64,7 @@ vrrp_instance VI_1 {
         auth_pass mysecret
     }
     virtual_ipaddress {
-        192.168.10.167 # IP address host
+        192.168.10.100 # IP address host
     }
     track_script {
         check_apiserver
@@ -91,9 +90,9 @@ backend kubernetes-backend
   mode tcp
   option ssl-hello-chk
   balance roundrobin
-    server node1 192.168.10.169:6443 check fall 3 rise 2
-    server node2 192.168.10.146:6443 check fall 3 rise 2
-    server node3 192.168.10.88:6443 check fall 3 rise 2
+    server node1 192.168.10.115:6443 check fall 3 rise 2
+    server node2 192.168.10.184:6443 check fall 3 rise 2
+    server node3 192.168.10.127:6443 check fall 3 rise 2
 
 EOF
 

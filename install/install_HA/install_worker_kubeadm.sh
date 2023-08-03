@@ -7,20 +7,15 @@ yum install -y nano mc git curl vim iproute-tc
 dnf install -y conntrack-tools libnetfilter_cthelper libnetfilter_cttimeout
 
 cat >> /etc/hosts << EOF
-192.168.10.169 node1.k8s.local
-192.168.10.169 node1
-192.168.10.146 node2.k8s.local
-192.168.10.146 node2
-192.168.10.88 node3.k8s.local
-192.168.10.88 node3
-192.168.10.81 node0.k8s.local
-192.168.10.81 node0
-192.168.10.155 node4.k8s.local
-192.168.10.155 node4
-192.168.10.89 node5.k8s.local
-192.168.10.89 node5
-192.168.10.167 lb.k8s.local
-192.168.10.167 lb
+192.168.10.115 k8s-master1
+192.168.10.184 k8s-master2
+192.168.10.127 k8s-master3
+192.168.10.110 k8s-worker1
+192.168.10.154 k8s-worker2
+192.168.10.129 k8s-worker3
+192.168.10.83 k8s-nfs
+192.168.10.100 lb.k8s.local
+192.168.10.100 lb
 EOF
 
 ##########Disable SELinux###############
@@ -82,7 +77,8 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+# dnf install -y kubelet=1.26.3 kubeadm=1.26.3 kubectl=1.26.3 --disableexcludes=kubernetes
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 dnf install -y yum-plugin-versionlock 
 dnf versionlock kubelet kubeadm kubectl
 systemctl daemon-reload
@@ -96,5 +92,6 @@ systemctl status kubelet
 
 
 ###########Setup networking with Calico
-kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml -O
+kubectl apply -f calico.yaml
+kubectl get nodes
