@@ -1,0 +1,20 @@
+# PV # For this config you need install NFS server https://www.linuxtechi.com/setup-nfs-server-on-centos-8-rhel-8/
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv1-nfs
+  namespace: wsaa
+spec:
+  capacity:
+    storage: 5Gi
+  # volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Recycle
+  storageClassName: nfs
+  # mountOptions:
+  #   - hard
+  #   - nfsvers=4.1
+  nfs:
+    path: /mnt/nfs_shares/k8s/asterisk
+    server: 192.168.1.100 # IP NFS server

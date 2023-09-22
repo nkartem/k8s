@@ -1,0 +1,60 @@
+apiVersion : apps/v1
+kind : Deployment
+metadata : 
+  name : asterisk-deploy
+  namespace: wsaa
+  labels:
+    app : asterisk-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asterisk
+  template:
+    metadata:
+      labels:
+        app: asterisk
+    spec:
+      containers:
+      - name: asterisk
+        image: nkartem/asterisk
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+        command: ["/bin/bash", "-c", "systemctl start asterisk"]
+        ports:
+        - name:  sip
+          containerPort:  5060
+          protocol: UDP
+        - name:  ssh
+          containerPort:  5022
+          protocol: UDP
+        - name:  sip-10000
+          containerPort: 10000
+          protocol: UDP
+        - name:  sip-10001
+          containerPort: 10001
+          protocol: UDP
+        - name:  sip-10002
+          containerPort: 10002
+          protocol: UDP
+        - name:  sip-10003
+          containerPort: 10003
+          protocol: UDP
+        - name:  sip-10004
+          containerPort: 10004
+          protocol: UDP
+        - name:  sip-10005
+          containerPort: 10005
+          protocol: UDP
+        # - name:  sip-connect
+        #   containerPort: '10000-20000'
+        #   protocol: UDP
+        volumeMounts:
+        - mountPath: /etc/asterisk
+          name: pvc-asterisk
+      volumes:
+      - name: pvc-asterisk
+        persistentVolumeClaim:
+          claimName: pv-claim-asterisk

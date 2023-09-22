@@ -1,0 +1,17 @@
+# dev-cluster.yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: emulation
+  region: eu-west-3
+
+managedNodeGroups:
+  - name: ng-1-workers
+    # labels: { role: workers }
+    instanceType: t3.medium
+    desiredCapacity: 4
+    volumeSize: 80
+    ami: arn:aws:iam::181212438155:user/akryvoruchko
+#    privateNetworking: true
+
