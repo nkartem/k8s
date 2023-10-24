@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name     : root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    name     : in-cluster
+    namespace: rra
+  source:
+    path   : "k8s/wsaa/ArgoCD/applications"
+    repoURL: "https://github.com/nkartem/k8s.git"
+    targetRevision: HEAD
+  project: default
+  syncPolicy:
+    automated:
+      prune   : true
+      selfHeal: true
